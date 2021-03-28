@@ -1,0 +1,7 @@
+.idea/
+node_modules/
+.cache/
+.nyc_output/
+coverage/
+*.log
+dist/

@@ -1,0 +1,96 @@
+export default function reduce(node, ctx) {
+  switch (node.type) {
+    case 'MemberExpression':
+      return reduceMemExpr(node, ctx);
+    case 'LogicalExpression':
+      return reduceLogExpr(node, ctx);
+    case 'ConditionalExpression':
+      return reduceConExpr(node, ctx);
+    case 'BinaryExpression':
+      return reduceBinExpr(node, ctx);
+    case 'UnaryExpression':
+      return reduceUnExpr(node, ctx);
+    case 'CallExpression':
+      return reduceCallExpr(node, ctx);
+    case 'NewExpression':
+      return reduceNewExpr(node, ctx);
+    case 'ArrayExpression':
+      return reduceArrExpr(node, ctx);
+    case 'ThisExpression':
+      return ctx;
+    case 'Identifier':
+      return resolveIdentifier(node.name, ctx);
+    case 'Literal':
+      return node.value;
+    default:
+      throw SyntaxError('Unexpected node');
+  }
+}
+
+function reduceMemExpr(node, ctx) {
+  return Reflect.get(
+    reduce(node.object, ctx),
+    node.property.type === 'Identifier'
+      ? node.property.name
+      : reduce(node.property, ctx),
+  );
+}
+
+function reduceCallExpr(node, ctx) {
+  return exec(node, ctx);
+}
+
+function reduceNewExpr(node, ctx) {
+  return exec(node, ctx);
+}
+
+function reduceUnExpr(node, ctx) {
+  if (!node.prefix) {
+    throw SyntaxError('Unexpected operator');
+  }
+
+  return Function('v', `return ${node.operator}v`)(reduce(node.argument, ctx));
+}
+
+function reduceConExpr(node, ctx) {
+  return Function('t, c, a', `return t ? c : a`)(
+    reduce(node.test, ctx),
+    reduce(node.consequent, ctx),
+    reduce(node.alternate, ctx),
+  );
+}
+
+function reduceBinExpr(node, ctx) {
+  return evalLhsRhs(node, ctx);
+}
+
+function reduceLogExpr(node, ctx) {
+  return evalLhsRhs(node, ctx);
+}
+
+function reduceArrExpr(node, ctx) {
+  return node.elements.map((el) => reduce(el, ctx));
+}
+
+function exec(node, ctx) {
+  return Reflect[node.type === 'NewExpression' ? 'construct' : 'apply'](
+    reduce(node.callee, ctx),
+    null,
+    node.arguments.map((arg) => reduce(arg, ctx)),
+  );
+}
+
+function evalLhsRhs(node, ctx) {
+  return Function('lhs, rhs', `return lhs ${node.operator} rhs`)(
+    reduce(node.left, ctx),
+    reduce(node.right, ctx),
+  );
+}
+
+function resolveIdentifier(name, ctx) {
+  if (ctx === void 0 || !(name in ctx)) {
+    throw ReferenceError(`${name} is not defined`);
+  }
+
+  return Reflect.get(ctx, name, ctx);
+}
