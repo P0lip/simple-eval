@@ -64,7 +64,8 @@ function reduceNewExpr(node, ctx) {
 }
 
 function reduceUnExpr(node, ctx) {
-  if (!node.prefix) {
+  if (!node.prefix || node.argument.type === 'UnaryExpression') {
+    // node.argument.type === 'UnaryExpression' condition is jsep specific, as it doesn't support UpdateExpression(s) and produce double UnaryExpression(s)
     throw SyntaxError('Unexpected operator');
   }
 

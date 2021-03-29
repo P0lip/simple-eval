@@ -66,7 +66,15 @@ it('supports NewExpressions', () => {
   });
 });
 
-each(['this.bar()', 'foo.bar.baz']).it(
+each(['var a = 2', '++c', 'a = b', 'a += b', 'a;b;']).it(
+  'given "%s", throws SyntaxError',
+  (expr) => {
+    expect(simpleEval.bind(null, expr)).to.throw(SyntaxError);
+    expect(reduce.bind(null, espree.parse(expr))).to.throw(SyntaxError);
+  },
+);
+
+each(['this.bar()', 'this.foo()', 'foo.bar.baz']).it(
   'given "%s", throws TypeError',
   (expr) => {
     expect(simpleEval.bind(null, expr, { foo: {} })).to.throw(TypeError);
