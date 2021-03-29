@@ -39,6 +39,7 @@ but you're free to use any ESTree compliant parser such as [`acorn`](https://www
 
 Although a number of use cases is supported, do note that this library does not aim to be a drop-in replacement for `eval`.
 By supporting a limited set of instructions, it's arguably safer than `eval`, albeit it's still not supposed to be used instead of proper sandbox.
+In particular, all kind of declarations and assignments are prohibited.
 
 ## LICENSE
 

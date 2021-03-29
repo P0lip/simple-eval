@@ -1,6 +1,8 @@
 /* eslint-disable sort-keys */
 import simpleEval from '../index.mjs';
+import reduce from '../reduce.mjs';
 import each from 'mocha-each';
+import espree from 'espree';
 
 each([
   '2',
@@ -14,10 +16,12 @@ each([
   'true + 1',
 ]).it('evaluates expression "%s"', (expr) => {
   expect(simpleEval(expr)).to.eq(eval(expr));
+  expect(reduce(espree.parse(expr))).to.eq(eval(expr));
 });
 
 each(['[1, 2, 3]']).it('evaluates expression "%s"', (expr) => {
   expect(simpleEval(expr)).to.deep.eq(eval(expr));
+  expect(reduce(espree.parse(expr))).to.deep.eq(eval(expr));
 });
 
 it('"undefined" is considered an identifier', () => {
@@ -34,9 +38,33 @@ each([
 ]).it(
   'given context, evaluates expression "%s" and resolves identifiers',
   (expr) => {
-    expect(simpleEval(expr, { Math, Number, process })).to.eq(eval(expr));
+    const ctx = {
+      Math,
+      Number,
+      process,
+    };
+    expect(simpleEval(expr, ctx)).to.eq(eval(expr));
+    expect(reduce(espree.parse(expr), ctx)).to.eq(eval(expr));
   },
 );
+
+it('supports NewExpressions', () => {
+  expect(reduce(espree.parse('new Date()'), { Date })).to.be.instanceOf(Date);
+
+  expect(
+    reduce(espree.parse('new Foo(bar, baz)'), {
+      Foo: class {
+        constructor(a, b) {
+          this.result = a + b;
+        }
+      },
+      bar: 1,
+      baz: 2,
+    }),
+  ).to.deep.equal({
+    result: 3,
+  });
+});
 
 each(['this.bar()', 'foo.bar.baz']).it(
   'given "%s", throws TypeError',

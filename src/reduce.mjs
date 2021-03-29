@@ -1,5 +1,9 @@
 export default function reduce(node, ctx) {
   switch (node.type) {
+    case 'Program':
+      return reduceProgram(node, ctx);
+    case 'ExpressionStatement':
+      return reduce(node.expression, ctx);
     case 'MemberExpression':
       return reduceMemExpr(node, ctx);
     case 'LogicalExpression':
@@ -27,6 +31,14 @@ export default function reduce(node, ctx) {
   }
 }
 
+function reduceProgram(node, ctx) {
+  if (node.body.length !== 1) {
+    throw SyntaxError('Too complex expression');
+  }
+
+  return reduce(node.body[0], ctx);
+}
+
 function reduceMemExpr(node, ctx) {
   return Reflect.get(
     reduce(node.object, ctx),
@@ -37,11 +49,18 @@ function reduceMemExpr(node, ctx) {
 }
 
 function reduceCallExpr(node, ctx) {
-  return exec(node, ctx);
+  return Reflect.apply(
+    reduce(node.callee, ctx),
+    null,
+    node.arguments.map((arg) => reduce(arg, ctx)),
+  );
 }
 
 function reduceNewExpr(node, ctx) {
-  return exec(node, ctx);
+  return Reflect.construct(
+    reduce(node.callee, ctx),
+    node.arguments.map((arg) => reduce(arg, ctx)),
+  );
 }
 
 function reduceUnExpr(node, ctx) {
@@ -70,14 +89,6 @@ function reduceLogExpr(node, ctx) {
 
 function reduceArrExpr(node, ctx) {
   return node.elements.map((el) => reduce(el, ctx));
-}
-
-function exec(node, ctx) {
-  return Reflect[node.type === 'NewExpression' ? 'construct' : 'apply'](
-    reduce(node.callee, ctx),
-    null,
-    node.arguments.map((arg) => reduce(arg, ctx)),
-  );
 }
 
 function evalLhsRhs(node, ctx) {
