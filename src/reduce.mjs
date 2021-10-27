@@ -40,12 +40,17 @@ function reduceProgram(node, ctx) {
 }
 
 function reduceMemExpr(node, ctx) {
-  return Reflect.get(
-    reduce(node.object, ctx),
+  const value = reduce(node.object, ctx);
+  const key =
     node.property.type === 'Identifier'
       ? node.property.name
-      : reduce(node.property, ctx),
-  );
+      : reduce(node.property, ctx);
+
+  if (typeof value[key] === 'function') {
+    return value[key].bind(value);
+  }
+
+  return value[key];
 }
 
 function reduceCallExpr(node, ctx) {

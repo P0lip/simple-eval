@@ -47,6 +47,17 @@ each([
   },
 );
 
+it('supports CallExpression on MemberExpression', () => {
+  const expr =
+    "path[1] + '-' + path[2].toUpperCase() + ' ' + path.slice(0, 1).join('').toUpperCase()";
+
+  expect(
+    simpleEval(expr, {
+      path: ['foo', 'bar', '/a'],
+    }),
+  ).to.eq('bar-/A FOO');
+});
+
 it('supports NewExpressions', () => {
   expect(simpleEval(espree.parse('new Date()'), { Date })).to.be.instanceOf(
     Date,
