@@ -1,6 +1,6 @@
 {
   "name": "simple-eval",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Simple JavaScript expression evaluator",
   "keywords": [
     "eval",
@@ -22,9 +22,17 @@
     "dist/"
   ],
   "typings": "./src/index.d.ts",
+  "type": "commonjs",
+  "main": "./dist/index.js",
   "exports": {
-    "import": "./src/index.mjs",
-    "require": "./dist/index.cjs"
+    ".": {
+      "import": "./src/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./eval": {
+      "import": "./src/reduce.mjs",
+      "require": "./dist/reduce.js"
+    }
   },
   "license": "MIT",
   "author": "Jakub Rożek",

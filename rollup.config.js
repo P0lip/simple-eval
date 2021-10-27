@@ -3,9 +3,9 @@ export default {
   input: './src/index.mjs',
   output: {
     dir: 'dist',
-    exports: 'default',
+    entryFileNames: '[name].js',
+    exports: 'named',
     format: 'cjs',
-    entryFileNames: '[name].cjs',
     preserveModules: true,
   },
 };
