@@ -1,7 +1,8 @@
 /* eslint-disable sort-keys */
 import simpleEval from '../index.mjs';
+import { expect } from 'chai';
 import each from 'mocha-each';
-import espree from 'espree';
+import * as espree from 'espree';
 
 each([
   '2',
