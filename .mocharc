@@ -1,5 +1,5 @@
 {
    "ui": "bdd",
    "slow": 100,
-   "require": ["chai/register-expect"]
+   "require": ["chai/register-expect.js"]
 }

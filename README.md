@@ -20,7 +20,7 @@ npm install simple-eval --save
 import simpleEval from 'simple-eval';
 
 simpleEval('2 + 4 * 10 + -4'); //  38
-simpleEval('Math.floor(Math.PI * 10)'); // exception 
+simpleEval('Math.floor(Math.PI * 10)'); // exception
 simpleEval('Math.floor(Math.PI * 10)', { Math }); // 31, works because we provided Math
 simpleEval('foo.bar.baz ? 10 : Math.random()', {
   Math,

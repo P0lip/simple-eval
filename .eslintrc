@@ -31,10 +31,7 @@
       "globals": {
         "expect": true
       },
-      "plugins": [
-        "chai-expect",
-        "chai-friendly"
-      ],
+      "plugins": ["chai-expect", "chai-friendly"],
       "rules": {
         "no-unused-expressions": 0,
         "chai-friendly/no-unused-expressions": 2
