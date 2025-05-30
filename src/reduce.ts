@@ -1,4 +1,18 @@
-export default function reduce(node, ctx) {
+import type {
+  Node,
+  Program,
+  MemberExpression,
+  CallExpression,
+  NewExpression,
+  UnaryExpression,
+  ConditionalExpression,
+  BinaryExpression,
+  LogicalExpression,
+  ArrayExpression,
+} from 'estree';
+import type { Context } from './types.ts';
+
+export default function reduce(node: Node, ctx?: Context): unknown {
   switch (node.type) {
     case 'Program':
       return reduceProgram(node, ctx);
@@ -31,7 +45,7 @@ export default function reduce(node, ctx) {
   }
 }
 
-function reduceProgram(node, ctx) {
+function reduceProgram(node: Program, ctx?: Context): unknown {
   if (node.body.length !== 1) {
     throw SyntaxError('Too complex expression');
   }
@@ -39,12 +53,12 @@ function reduceProgram(node, ctx) {
   return reduce(node.body[0], ctx);
 }
 
-function reduceMemExpr(node, ctx) {
-  const value = reduce(node.object, ctx);
+function reduceMemExpr(node: MemberExpression, ctx?: Context): unknown {
+  const value = reduce(node.object, ctx) as Record<string | number, any>;
   const key =
     node.property.type === 'Identifier'
       ? node.property.name
-      : reduce(node.property, ctx);
+      : (reduce(node.property, ctx) as string | number);
 
   if (typeof value[key] === 'function') {
     return value[key].bind(value);
@@ -53,22 +67,22 @@ function reduceMemExpr(node, ctx) {
   return value[key];
 }
 
-function reduceCallExpr(node, ctx) {
+function reduceCallExpr(node: CallExpression, ctx?: Context): unknown {
   return Reflect.apply(
-    reduce(node.callee, ctx),
+    reduce(node.callee, ctx) as Function,
     null,
     node.arguments.map((arg) => reduce(arg, ctx)),
   );
 }
 
-function reduceNewExpr(node, ctx) {
+function reduceNewExpr(node: NewExpression, ctx?: Context): unknown {
   return Reflect.construct(
-    reduce(node.callee, ctx),
+    reduce(node.callee, ctx) as Function,
     node.arguments.map((arg) => reduce(arg, ctx)),
   );
 }
 
-function reduceUnExpr(node, ctx) {
+function reduceUnExpr(node: UnaryExpression, ctx?: Context): unknown {
   if (!node.prefix || node.argument.type === 'UnaryExpression') {
     // node.argument.type === 'UnaryExpression' condition is jsep specific, as it doesn't support UpdateExpression(s) and produce double UnaryExpression(s)
     throw SyntaxError('Unexpected operator');
@@ -77,7 +91,7 @@ function reduceUnExpr(node, ctx) {
   return Function('v', `return ${node.operator}v`)(reduce(node.argument, ctx));
 }
 
-function reduceConExpr(node, ctx) {
+function reduceConExpr(node: ConditionalExpression, ctx?: Context): unknown {
   return Function('t, c, a', `return t ? c : a`)(
     reduce(node.test, ctx),
     reduce(node.consequent, ctx),
@@ -85,26 +99,29 @@ function reduceConExpr(node, ctx) {
   );
 }
 
-function reduceBinExpr(node, ctx) {
+function reduceBinExpr(node: BinaryExpression, ctx?: Context): unknown {
   return evalLhsRhs(node, ctx);
 }
 
-function reduceLogExpr(node, ctx) {
+function reduceLogExpr(node: LogicalExpression, ctx?: Context): unknown {
   return evalLhsRhs(node, ctx);
 }
 
-function reduceArrExpr(node, ctx) {
-  return node.elements.map((el) => reduce(el, ctx));
+function reduceArrExpr(node: ArrayExpression, ctx?: Context): unknown[] {
+  return node.elements.map((el) => (el === null ? null : reduce(el, ctx)));
 }
 
-function evalLhsRhs(node, ctx) {
+function evalLhsRhs(
+  node: BinaryExpression | LogicalExpression,
+  ctx?: Context,
+): unknown {
   return Function('lhs, rhs', `return lhs ${node.operator} rhs`)(
     reduce(node.left, ctx),
     reduce(node.right, ctx),
   );
 }
 
-function resolveIdentifier(name, ctx) {
+function resolveIdentifier(name: string, ctx?: Context): unknown {
   if (ctx === void 0 || !(name in ctx)) {
     throw ReferenceError(`${name} is not defined`);
   }

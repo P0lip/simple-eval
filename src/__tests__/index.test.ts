@@ -5,9 +5,13 @@ import process from 'node:process';
 
 import * as espree from 'espree';
 
-import simpleEval from '../index.mjs';
+import simpleEval from '../index.ts';
 
-function runTestForEach(cases, title, testFn) {
+function runTestForEach(
+  cases: string[],
+  title: string,
+  testFn: (arg: string) => void,
+): void {
   for (const args of cases) {
     const testTitle = title.replace(/%s/g, args);
     test(testTitle, () => testFn(args));
@@ -80,14 +84,15 @@ test('supports NewExpressions', () => {
 
   const result = simpleEval(espree.parse('new Foo(bar, baz)'), {
     Foo: class {
-      constructor(a, b) {
+      result: number;
+      constructor(a: number, b: number) {
         this.result = a + b;
       }
     },
     bar: 1,
     baz: 2,
   });
-  assert.strictEqual(result.result, 3);
+  assert.strictEqual((result as { result: number }).result, 3);
 });
 
 const syntaxErrorExpressions = ['var a = 2', '++c', 'a = b', 'a += b', 'a;b;'];
@@ -128,4 +133,9 @@ test('"this" points at provided context', () => {
   assert.strictEqual(simpleEval('this', ctx), ctx);
   assert.strictEqual(simpleEval('this.Math', ctx), ctx.Math);
   assert.strictEqual(simpleEval('this.emptyArr', ctx), ctx.emptyArr);
+});
+
+test('handles sparse arrays', () => {
+  assert.strictEqual(simpleEval('[,,,"entry"][3]'), 'entry');
+  assert.strictEqual(simpleEval('["entry",,][0]'), 'entry');
 });

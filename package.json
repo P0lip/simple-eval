@@ -18,23 +18,15 @@
   },
   "files": [
     "src/*.d.ts",
-    "src/*.mjs",
+    "src/*.ts",
     "dist/"
   ],
-  "typings": "./src/index.d.ts",
-  "type": "commonjs",
-  "main": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
+  "type": "module",
+  "module": "./dist/index.mjs",
   "exports": {
-    ".": {
-      "types": "./src/index.d.ts",
-      "import": "./src/index.mjs",
-      "require": "./dist/index.js"
-    },
-    "./eval": {
-      "types": "./src/reduce.d.ts",
-      "import": "./src/reduce.mjs",
-      "require": "./dist/reduce.js"
-    }
+    ".": "./dist/index.mjs",
+    "./eval": "./dist/reduce.mjs"
   },
   "license": "MIT",
   "author": "Jakub Rożek",
@@ -43,23 +35,29 @@
     "url": "https://github.com/P0lip/simple-eval"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production rollup -c",
-    "lint": "eslint --cache --cache-location .cache/ src/**/*.mjs",
-    "test": "cross-env NODE_ENV=test node --experimental-test-coverage  --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage/lcov.info --test-coverage-lines=90 --test-coverage-branches=95 --test ./src/__tests__/*.mjs",
-    "prepublishOnly": "npm run lint && npm run test && npm run build",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint --cache --cache-location .cache/ src/**/*.ts",
+    "test": "node --experimental-strip-types --experimental-test-coverage  --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage/lcov.info --test-coverage-lines=90 --test-coverage-branches=95 --test ./src/__tests__/*.ts",
+    "prepublishOnly": "node --run lint && node --run test && node --run typecheck && node --run build",
     "prepare": "husky install"
   },
   "dependencies": {
-    "jsep": "^1.3.6"
+    "@types/estree": "^1.0.7",
+    "jsep": "^1.4.0"
   },
   "devDependencies": {
-    "cross-env": "^7.0.3",
+    "@types/espree": "^10.1.0",
+    "@types/node": "^22.15.27",
+    "@typescript-eslint/eslint-plugin": "^5.30.0",
+    "@typescript-eslint/parser": "^5.30.0",
     "eslint": "^8.20.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
     "espree": "^9.3.2",
     "husky": "^6.0.0",
     "prettier": "^2.7.1",
-    "rollup": "^2.43.1"
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3"
   }
 }

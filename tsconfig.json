@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "declarationDir": "./dist",
+    "outDir": "./dist",
+    "module": "Node16",
+    "moduleResolution": "node16",
+    "esModuleInterop": true,
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "**/__tests__/*"]
+}
