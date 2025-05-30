@@ -1,4 +1,3 @@
-/* eslint-disable sort-keys */
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import process from 'node:process';

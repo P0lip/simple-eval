@@ -25,8 +25,8 @@
   "type": "module",
   "module": "./dist/index.mjs",
   "exports": {
-    ".": "./dist/index.mjs",
-    "./eval": "./dist/reduce.mjs"
+    ".": "./dist/index.js",
+    "./eval": "./dist/reduce.js"
   },
   "license": "MIT",
   "author": "Jakub Rożek",
@@ -37,7 +37,7 @@
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint --cache --cache-location .cache/ src/**/*.ts",
+    "lint": "eslint --cache --cache-location .cache/ src && prettier --check src",
     "test": "node --experimental-strip-types --experimental-test-coverage  --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage/lcov.info --test-coverage-lines=90 --test-coverage-branches=95 --test ./src/__tests__/*.ts",
     "prepublishOnly": "node --run lint && node --run test && node --run typecheck && node --run build",
     "prepare": "husky install"
@@ -49,14 +49,12 @@
   "devDependencies": {
     "@types/espree": "^10.1.0",
     "@types/node": "^22.15.27",
-    "@typescript-eslint/eslint-plugin": "^5.30.0",
-    "@typescript-eslint/parser": "^5.30.0",
-    "eslint": "^8.20.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-prettier": "^4.2.1",
+    "@typescript-eslint/eslint-plugin": "^8.33.0",
+    "@typescript-eslint/parser": "^8.33.0",
+    "eslint": "^9.27.0",
     "espree": "^9.3.2",
     "husky": "^6.0.0",
-    "prettier": "^2.7.1",
+    "prettier": "^3.5.3",
     "tsup": "^8.5.0",
     "typescript": "^5.8.3"
   }
