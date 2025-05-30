@@ -1,5 +1,5 @@
 import jsep from 'jsep';
-import type { Expression } from 'estree';
+import type { Expression, Program } from 'estree';
 import reduce from './reduce.ts';
 import type { Context } from './types.ts';
 
@@ -11,7 +11,10 @@ function parse(expr: string): Expression {
   }
 }
 
-export default (expr: string | Expression, ctx?: Context): unknown => {
+export default (
+  expr: string | Expression | Program,
+  ctx?: Context,
+): unknown => {
   const tree = typeof expr === 'object' ? expr : parse(expr);
   return reduce(tree, Object.freeze(ctx));
 };

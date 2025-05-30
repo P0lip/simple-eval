@@ -31,6 +31,8 @@ export default [
       'sort-keys': 'error',
       'no-void': 'off',
       'no-undefined': 'error',
+      'no-eval': 'error',
+      'no-new-func': 'error',
 
       // Include recommended and strict rules from plugins
       ...tseslint.configs.recommended.rules,
