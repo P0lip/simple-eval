@@ -1,41 +1,56 @@
 /* eslint-disable sort-keys */
-import simpleEval from '../index.mjs';
-import { expect } from 'chai';
-import each from 'mocha-each';
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import process from 'node:process';
+
 import * as espree from 'espree';
 
-each([
-  '2',
-  '"2"',
-  '2 * 2',
-  'null',
-  '2 + -2',
-  '(2 + 4) * 10 - 2 / 4',
-  'false',
-  'true',
-  'true + 1',
-]).it('evaluates expression "%s"', (expr) => {
-  expect(simpleEval(expr)).to.eq(eval(expr));
-  expect(simpleEval(espree.parse(expr))).to.eq(eval(expr));
+import simpleEval from '../index.mjs';
+
+function runTestForEach(cases, title, testFn) {
+  for (const args of cases) {
+    const testTitle = title.replace(/%s/g, args);
+    test(testTitle, () => testFn(args));
+  }
+}
+
+runTestForEach(
+  [
+    '2',
+    '"2"',
+    '2 * 2',
+    'null',
+    '2 + -2',
+    '(2 + 4) * 10 - 2 / 4',
+    'false',
+    'true',
+    'true + 1',
+  ],
+  'evaluates expression "%s"',
+  (expr) => {
+    assert.strictEqual(simpleEval(expr), eval(expr));
+    assert.strictEqual(simpleEval(espree.parse(expr)), eval(expr));
+  },
+);
+
+runTestForEach(['[1, 2, 3]'], 'evaluates expression "%s"', (expr) => {
+  assert.deepStrictEqual(simpleEval(expr), eval(expr));
+  assert.deepStrictEqual(simpleEval(espree.parse(expr)), eval(expr));
 });
 
-each(['[1, 2, 3]']).it('evaluates expression "%s"', (expr) => {
-  expect(simpleEval(expr)).to.deep.eq(eval(expr));
-  expect(simpleEval(espree.parse(expr))).to.deep.eq(eval(expr));
+test('"undefined" is considered an identifier', () => {
+  assert.strictEqual(simpleEval('undefined', { undefined: 5 }), 5);
 });
 
-it('"undefined" is considered an identifier', () => {
-  expect(simpleEval('undefined', { undefined: 5 })).to.eq(5);
-});
-
-each([
-  'Math.floor(Math.PI)',
-  'Number.isNaN(Math.PI) ? 0 : 1',
-  'Number.isFinite(Math.foo) ? 0 : 1',
-  'process.env.NODE_ENV || false',
-  'process.cwd() && false',
-  'process.cwd()',
-]).it(
+runTestForEach(
+  [
+    'Math.floor(Math.PI)',
+    'Number.isNaN(Math.PI) ? 0 : 1',
+    'Number.isFinite(Math.foo) ? 0 : 1',
+    'process.env.NODE_ENV || false',
+    'process.cwd() && false',
+    'process.cwd()',
+  ],
   'given context, evaluates expression "%s" and resolves identifiers',
   (expr) => {
     const ctx = {
@@ -43,68 +58,74 @@ each([
       Number,
       process,
     };
-    expect(simpleEval(expr, ctx)).to.eq(eval(expr));
-    expect(simpleEval(espree.parse(expr), ctx)).to.eq(eval(expr));
+    assert.strictEqual(simpleEval(expr, ctx), eval(expr));
+    assert.strictEqual(simpleEval(espree.parse(expr), ctx), eval(expr));
   },
 );
 
-it('supports CallExpression on MemberExpression', () => {
+test('supports CallExpression on MemberExpression', () => {
   const expr =
     "path[1] + '-' + path[2].toUpperCase() + ' ' + path.slice(0, 1).join('').toUpperCase()";
 
-  expect(
+  assert.strictEqual(
     simpleEval(expr, {
       path: ['foo', 'bar', '/a'],
     }),
-  ).to.eq('bar-/A FOO');
-});
-
-it('supports NewExpressions', () => {
-  expect(simpleEval(espree.parse('new Date()'), { Date })).to.be.instanceOf(
-    Date,
+    'bar-/A FOO',
   );
-
-  expect(
-    simpleEval(espree.parse('new Foo(bar, baz)'), {
-      Foo: class {
-        constructor(a, b) {
-          this.result = a + b;
-        }
-      },
-      bar: 1,
-      baz: 2,
-    }),
-  ).to.deep.equal({
-    result: 3,
-  });
 });
 
-each(['var a = 2', '++c', 'a = b', 'a += b', 'a;b;']).it(
+test('supports NewExpressions', () => {
+  assert.ok(simpleEval(espree.parse('new Date()'), { Date }) instanceof Date);
+
+  const result = simpleEval(espree.parse('new Foo(bar, baz)'), {
+    Foo: class {
+      constructor(a, b) {
+        this.result = a + b;
+      }
+    },
+    bar: 1,
+    baz: 2,
+  });
+  assert.strictEqual(result.result, 3);
+});
+
+const syntaxErrorExpressions = ['var a = 2', '++c', 'a = b', 'a += b', 'a;b;'];
+
+runTestForEach(
+  syntaxErrorExpressions,
   'given "%s", throws SyntaxError',
   (expr) => {
-    expect(simpleEval.bind(null, expr)).to.throw(SyntaxError);
-    expect(simpleEval.bind(null, espree.parse(expr))).to.throw(SyntaxError);
+    assert.throws(() => simpleEval(expr), { name: 'SyntaxError' });
+    assert.throws(() => simpleEval(espree.parse(expr)), {
+      name: 'SyntaxError',
+    });
   },
 );
 
-each(['this.bar()', 'this.foo()', 'foo.bar.baz']).it(
-  'given "%s", throws TypeError',
-  (expr) => {
-    expect(simpleEval.bind(null, expr, { foo: {} })).to.throw(TypeError);
-  },
-);
+const typeErrorExpressions = ['this.bar()', 'this.foo()', 'foo.bar.baz'];
 
-each(['bar()', 'foo']).it('given "%s", throws ReferenceError', (expr) => {
-  expect(simpleEval.bind(null, expr, {})).to.throw(ReferenceError);
+runTestForEach(typeErrorExpressions, 'given "%s", throws TypeError', (expr) => {
+  assert.throws(() => simpleEval(expr, { foo: {} }), { name: 'TypeError' });
 });
 
-it('"this" points at provided context', () => {
+const referenceErrorExpressions = ['bar()', 'foo'];
+
+runTestForEach(
+  referenceErrorExpressions,
+  'given "%s", throws ReferenceError',
+  (expr) => {
+    assert.throws(() => simpleEval(expr, {}), { name: 'ReferenceError' });
+  },
+);
+
+test('"this" points at provided context', () => {
   const ctx = {
     Math,
     emptyArr: [],
   };
 
-  expect(simpleEval('this', ctx)).to.eq(ctx);
-  expect(simpleEval('this.Math', ctx)).to.eq(ctx.Math);
-  expect(simpleEval('this.emptyArr', ctx)).to.eq(ctx.emptyArr);
+  assert.strictEqual(simpleEval('this', ctx), ctx);
+  assert.strictEqual(simpleEval('this.Math', ctx), ctx.Math);
+  assert.strictEqual(simpleEval('this.emptyArr', ctx), ctx.emptyArr);
 });

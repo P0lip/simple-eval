@@ -20,25 +20,5 @@
     "no-undefined": "error",
     "prettier/prettier": "error"
   },
-  "overrides": [
-    {
-      "files": ["src/__tests__/**/*.mjs"],
-      "extends": ["plugin:chai-expect/recommended"],
-      "env": {
-        "mocha": true,
-        "node": true
-      },
-      "globals": {
-        "expect": true
-      },
-      "plugins": [
-        "chai-expect",
-        "chai-friendly"
-      ],
-      "rules": {
-        "no-unused-expressions": 0,
-        "chai-friendly/no-unused-expressions": 2
-      }
-    }
-  ]
+  "overrides": []
 }
