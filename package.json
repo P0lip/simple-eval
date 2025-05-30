@@ -1,6 +1,6 @@
 {
   "name": "simple-eval",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Simple JavaScript expression evaluator",
   "keywords": [
     "eval",
@@ -17,13 +17,12 @@
     "node": ">=12"
   },
   "files": [
-    "src/*.d.ts",
-    "src/*.ts",
+    "src/",
     "dist/"
   ],
   "typings": "./dist/index.d.ts",
   "type": "module",
-  "module": "./dist/index.mjs",
+  "module": "./dist/index.js",
   "exports": {
     ".": "./dist/index.js",
     "./eval": "./dist/reduce.js"
