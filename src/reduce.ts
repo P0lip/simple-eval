@@ -13,6 +13,8 @@ import type {
 import type { Context } from './types.ts';
 import { isCallable, isConstructable, printValue } from './utils.ts';
 
+const FORBIDDEN_PROPERTIES = new Set(['constructor', '__proto__', 'prototype']);
+
 export default function reduce(node: Node, ctx?: Context): unknown {
   // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
   switch (node.type) {
@@ -61,6 +63,10 @@ function reduceMemExpr(node: MemberExpression, ctx?: Context): unknown {
     node.property.type === 'Identifier'
       ? node.property.name
       : reduce(node.property, ctx);
+
+  if (typeof key === 'string' && FORBIDDEN_PROPERTIES.has(key)) {
+    throw TypeError(`Cannot access forbidden property '${key}'`);
+  }
 
   if (value === null || value === void 0) {
     throw TypeError(

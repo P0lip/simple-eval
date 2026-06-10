@@ -328,6 +328,26 @@ test('throws error for non-constructable values', () => {
   assert.throws(() => simpleEval(numberConstructExpr), { name: 'TypeError' });
 });
 
+runTestForEach(
+  [
+    '(1).constructor.constructor("return process")()',
+    '(1)["constructor"]["constructor"]("return process")()',
+    '("").constructor.constructor("return process")()',
+    '[].constructor.constructor("return process")()',
+    'foo.constructor.constructor("return process")()',
+    'foo.__proto__',
+    'foo["__proto__"]',
+    'foo.constructor',
+    'Math.constructor',
+  ],
+  'blocks sandbox escape via "%s"',
+  (expr) => {
+    assert.throws(() => simpleEval(expr, { Math, foo: {} }), {
+      name: 'TypeError',
+    });
+  },
+);
+
 function runTestForEach(
   cases: string[],
   title: string,
